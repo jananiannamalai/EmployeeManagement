@@ -1,9 +1,9 @@
-
 package com.employees.employeemanagement.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,7 +14,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  
     // Employee Not Found - 404
 
     @ExceptionHandler(EmployeeNotFoundException.class)
@@ -30,6 +29,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(error);
     }
+
 
     // Request Body Validation - 400
 
@@ -76,21 +76,25 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Other Unexpected Exceptions - 500
+    // Malformed JSON Request - 400
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(
-            Exception ex) {
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidJson(
+            HttpMessageNotReadableException ex) {
 
         ErrorResponse error = new ErrorResponse(
-                ex.getMessage(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value()
+                "Invalid JSON request",
+                HttpStatus.BAD_REQUEST.value()
         );
 
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(error);
     }
+
+
+    // Duplicate Resource - 409
+
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResource(
             DuplicateResourceException ex) {
@@ -105,7 +109,8 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
-// Department Not Found - 404
+
+    // Department Not Found - 404
 
     @ExceptionHandler(DepartmentNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleDepartmentNotFound(
@@ -121,7 +126,8 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
-// Project Not Found - 404
+
+    // Project Not Found - 404
 
     @ExceptionHandler(ProjectNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleProjectNotFound(
@@ -136,5 +142,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(error);
     }
-}
 
+
+    // Other Unexpected Exceptions - 500
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(
+            Exception ex) {
+
+        ErrorResponse error = new ErrorResponse(
+                ex.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(error);
+    }
+}
